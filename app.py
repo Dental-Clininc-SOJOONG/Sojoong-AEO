@@ -13,7 +13,7 @@ st.markdown('''
 ''', unsafe_allow_html=True)
 
 st.markdown('<div class="main-title">Dental Clinic SOJOONG - Gemini AEO Tool</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">구글 제미나이 엔진을 활용한 실시간 AI 검색 노출 및 마케팅 포지셔닝 분석 시스템</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">구글 제미나이 엔진을 활용한 AI 검색 노출 및 마케팅 포지셔닝 분석 시스템</div>', unsafe_allow_html=True)
 
 # 2. 사이드바 - 설정 및 API 키 입력
 st.sidebar.header("⚙️ 시스템 설정")
@@ -29,20 +29,15 @@ target_name = st.sidebar.text_input("업체명", value="소중치과")
 target_region = st.sidebar.text_input("분석 지역", value="문정동")
 target_specialty = st.sidebar.text_area("핵심 강점 (USP)", value="1. 자연치아 살리기 대표원장 & 교정 협진\n2. 충치·임플란트·보철 원스톱 진료\n3. 클리피씨 교정 주력")
 
-# 3. 메인 로직 함수 정의 (Google Gemini 모델 연동)
+# 3. 메인 로직 함수 정의 (가장 안정적인 모델만 사용)
 def generate_questions(region, specialty):
-    # 🌟 수정: 모델명을 가장 최신/안정화 버전으로 명확히 지정
-    model = genai.GenerativeModel("gemini-1.5-flash-latest")
+    model = genai.GenerativeModel("models/gemini-1.5-flash") # 명확한 최신 모델명 명시
     prompt = f"너는 환자의 마음을 잘 아는 마케터야. 지역은 '{region}'이고, 찾는 치과의 특징은 '{specialty}'야. 이 조건에 맞는 치과를 찾기 위해 환자가 AI 검색 엔진에 물어볼 법한 길고 구체적인 질문 2가지를 작성해줘. 번호 없이 한 줄에 하나씩 적어줘."
     response = model.generate_content(prompt)
     return [q.strip('- 1234567890.') for q in response.text.strip().split('\n') if len(q) > 10][:2]
 
 def get_gemini_answers(questions):
-    # 🌟 수정: 모델명을 가장 최신/안정화 버전으로 명확히 지정
-    model = genai.GenerativeModel(
-        "gemini-1.5-flash-latest",
-        tools=[{"google_search": {}}]
-    )
+    model = genai.GenerativeModel("models/gemini-1.5-flash") # 실시간 검색 옵션 제거 (오류 방지)
     
     results = []
     for q in questions:
@@ -51,16 +46,15 @@ def get_gemini_answers(questions):
             answer = response.text
         except Exception as e:
             answer = f"오류 발생: {e}"
-        results.append({"AI 엔진": "Google Gemini (실시간 검색 모드)", "환자 질문": q, "응답 결과": answer})
+        results.append({"AI 엔진": "Google Gemini", "환자 질문": q, "응답 결과": answer})
     return results
 
 def evaluate_and_recommend(target_name, results, specialty):
-    # 🌟 수정: 모델명을 가장 최신/안정화 버전으로 명확히 지정
-    model = genai.GenerativeModel("gemini-1.5-pro-latest") 
+    model = genai.GenerativeModel("models/gemini-1.5-pro") 
     data_str = "\n".join([f"질문: {r['환자 질문']} \n답변: {r['응답 결과']}" for r in results])
     
     prompt = f'''
-    아래는 환자의 질문에 대해 구글 제미나이가 실시간 웹 검색을 거쳐 답변한 내용이다.
+    아래는 환자의 질문에 대해 구글 제미나이가 답변한 내용이다.
     타겟 업체명: {target_name}
     업체 강점: {specialty}
     
@@ -76,7 +70,7 @@ def evaluate_and_recommend(target_name, results, specialty):
     return response.text
 
 # 4. 분석 실행 UI
-if st.button("🚀 실시간 AI 검색 포지셔닝 분석 시작", type="primary"):
+if st.button("🚀 AI 검색 포지셔닝 분석 시작", type="primary"):
     if len(api_key) < 20: 
         st.error("좌측 사이드바에 유효한 Google Gemini API Key를 입력해주세요!")
     else:
@@ -90,17 +84,17 @@ if st.button("🚀 실시간 AI 검색 포지셔닝 분석 시작", type="primar
             questions = generate_questions(target_region, target_specialty)
             progress_bar.progress(20)
             
-            status_text.text("2단계: 구글 실시간 웹 검색 기반 추천 데이터 수집 중 (약 5~10초 소요)...")
+            status_text.text("2단계: 구글 AI 응답 데이터 수집 중...")
             gemini_results = get_gemini_answers(questions)
             progress_bar.progress(70)
             
             status_text.text("3단계: 노출도 점수화 및 향후 마케팅 가이드 분석 중...")
             report = evaluate_and_recommend(target_name, gemini_results, target_specialty)
             progress_bar.progress(100)
-            status_text.success("실시간 AI 진단이 완료되었습니다!")
+            status_text.success("AI 진단이 완료되었습니다!")
             
             st.write("---")
-            st.write("### 🔍 AI 엔진 실시간 추천 응답 데이터")
+            st.write("### 🔍 AI 엔진 응답 데이터")
             
             df = pd.DataFrame(gemini_results)
             st.table(df[['AI 엔진', '환자 질문']])
