@@ -17,7 +17,13 @@ st.markdown('<div class="sub-title">ChatGPT, Claude, Gemini 통합 AI 검색 노
 
 # 2. 사이드바 - 설정 및 API 키 입력
 st.sidebar.header("⚙️ 시스템 설정")
-api_key = st.sidebar.text_input("🔑 OpenRouter API Key", type="password", help="sk-or- 로 시작하는 키를 입력하세요.")
+
+# Streamlit Secrets에 저장된 키가 있으면 자동으로 불러오기
+default_key = ""
+if "OPENROUTER_API_KEY" in st.secrets:
+    default_key = st.secrets["OPENROUTER_API_KEY"]
+
+api_key = st.sidebar.text_input("🔑 OpenRouter API Key", type="password", value=default_key, help="sk-or- 로 시작하는 키를 입력하세요.")
 
 st.sidebar.subheader("🔍 진단 대상 정보")
 target_name = st.sidebar.text_input("업체명", value="소중치과")
