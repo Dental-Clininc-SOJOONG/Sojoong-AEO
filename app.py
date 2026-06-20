@@ -13,7 +13,7 @@ st.markdown('''
 ''', unsafe_allow_html=True)
 
 st.markdown('<div class="main-title">Dental Clinic SOJOONG - Gemini AEO Tool</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">구글 제미나이 엔진을 활용한 AI 검색 노출 및 마케팅 포지셔닝 분석 시스템</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">구글 제미나이 최신 엔진을 활용한 마케팅 포지셔닝 분석 시스템</div>', unsafe_allow_html=True)
 
 # 2. 사이드바 - 설정 및 API 키 입력
 st.sidebar.header("⚙️ 시스템 설정")
@@ -22,23 +22,22 @@ default_key = ""
 if "GEMINI_API_KEY" in st.secrets:
     default_key = st.secrets["GEMINI_API_KEY"]
 
-api_key = st.sidebar.text_input("🔑 Google Gemini API Key", type="password", value=default_key, help="발급받은 구글 API 키를 입력하세요.")
+api_key = st.sidebar.text_input("🔑 Google Gemini API Key", type="password", value=default_key, help="AIzaSy... 로 시작하는 키를 입력하세요.")
 
 st.sidebar.subheader("🔍 진단 대상 정보")
 target_name = st.sidebar.text_input("업체명", value="소중치과")
 target_region = st.sidebar.text_input("분석 지역", value="문정동")
 target_specialty = st.sidebar.text_area("핵심 강점 (USP)", value="1. 자연치아 살리기 대표원장 & 교정 협진\n2. 충치·임플란트·보철 원스톱 진료\n3. 클리피씨 교정 주력")
 
-# 3. 메인 로직 함수 정의 (가장 안정적인 모델만 사용)
+# 3. 메인 로직 함수 정의 (공식 문서 기준 표준 모델명 적용)
 def generate_questions(region, specialty):
-    model = genai.GenerativeModel("models/gemini-1.5-flash") # 명확한 최신 모델명 명시
+    model = genai.GenerativeModel("gemini-1.5-flash") 
     prompt = f"너는 환자의 마음을 잘 아는 마케터야. 지역은 '{region}'이고, 찾는 치과의 특징은 '{specialty}'야. 이 조건에 맞는 치과를 찾기 위해 환자가 AI 검색 엔진에 물어볼 법한 길고 구체적인 질문 2가지를 작성해줘. 번호 없이 한 줄에 하나씩 적어줘."
     response = model.generate_content(prompt)
     return [q.strip('- 1234567890.') for q in response.text.strip().split('\n') if len(q) > 10][:2]
 
 def get_gemini_answers(questions):
-    model = genai.GenerativeModel("models/gemini-1.5-flash") # 실시간 검색 옵션 제거 (오류 방지)
-    
+    model = genai.GenerativeModel("gemini-1.5-flash")
     results = []
     for q in questions:
         try:
@@ -46,11 +45,11 @@ def get_gemini_answers(questions):
             answer = response.text
         except Exception as e:
             answer = f"오류 발생: {e}"
-        results.append({"AI 엔진": "Google Gemini", "환자 질문": q, "응답 결과": answer})
+        results.append({"AI 엔진": "Google Gemini 1.5 Flash", "환자 질문": q, "응답 결과": answer})
     return results
 
 def evaluate_and_recommend(target_name, results, specialty):
-    model = genai.GenerativeModel("models/gemini-1.5-pro") 
+    model = genai.GenerativeModel("gemini-1.5-pro") 
     data_str = "\n".join([f"질문: {r['환자 질문']} \n답변: {r['응답 결과']}" for r in results])
     
     prompt = f'''
@@ -71,9 +70,10 @@ def evaluate_and_recommend(target_name, results, specialty):
 
 # 4. 분석 실행 UI
 if st.button("🚀 AI 검색 포지셔닝 분석 시작", type="primary"):
-    if len(api_key) < 20: 
-        st.error("좌측 사이드바에 유효한 Google Gemini API Key를 입력해주세요!")
+    if not api_key.startswith("AIzaSy"): 
+        st.error("좌측 사이드바에 유효한 Google Gemini API Key(AIzaSy... 로 시작)를 입력해주세요!")
     else:
+        # 공식 문서 기준 환경설정 적용
         genai.configure(api_key=api_key)
         
         progress_bar = st.progress(0)
