@@ -28,7 +28,7 @@ api_key = st.sidebar.text_input("🔑 OpenRouter API Key", type="password", valu
 st.sidebar.subheader("🔍 진단 대상 정보")
 target_name = st.sidebar.text_input("업체명", value="소중치과")
 target_region = st.sidebar.text_input("분석 지역", value="문정동")
-target_specialty = st.sidebar.text_area("핵심 강점 (USP)", value="1. 자연치아 살리기 대표원장 & 교정 협진\n2. 충치·임플란트·보철 원스톱 진료\n3. 클리피씨 교정 주력")
+target_specialty = st.sidebar.text_area("핵심 강점 (USP)", value="1. 자연치아 살리기 대표원장 & 교정 협진\n2. 교정과 함께 충치·임플란트·보철 원스톱 진료\n3. 서울대출신 교정 전문의")
 
 # 3. 메인 로직 함수 정의 (OpenRouter 연동)
 def generate_questions(client, region, specialty):
